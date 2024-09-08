@@ -1,0 +1,3 @@
+gcn-kafka
+azure-storage-blob
+python-dotenv
