@@ -176,4 +176,7 @@ while True:
         blob_client = container_client.get_blob_client(blob_name)
 
         # Upload do conteúdo da mensagem como blob
-        blob_client.upload_blob(msg)  # Certifique-se de que msg está em formato JSON
+        try:
+            blob_client.upload_blob(msg, overwrite=True)  # Adicionado overwrite=True para evitar erros de blob existente
+        except ResourceExistsError:
+            print(f'O blob {blob_name} já existe e não foi sobrescrito.')
