@@ -1,7 +1,9 @@
 from gcn_kafka import Consumer
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.core.exceptions import ResourceExistsError 
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 
@@ -166,17 +168,25 @@ while True:
         print(f'topic={message.topic()}, offset={message.offset()}')
         msg = message.value().decode('UTF-8')
         print(f'msg = {msg}')
-        # value = message.value()
-        # print(value)
+        value = message.value()
+        print(value)
+
+        # Criar um dicionário com todos os campos desejados
+        message_data = {
+            'topic': message.topic(),
+            'offset': message.offset(),
+            'timestamp': message.timestamp(),  # Adicionado para capturar o timestamp
+            'value': msg
+        }
 
         # Gerar o nome do blob usando o tópico e o offset como identificadores únicos
-        blob_name = f"{message.topic()}_{message.offset()}.json"  # Alterado para .json
+        blob_name = f"{message.topic()}_{message.offset()}.json"
 
         # Criar o blob
         blob_client = container_client.get_blob_client(blob_name)
 
         # Upload do conteúdo da mensagem como blob
         try:
-            blob_client.upload_blob(msg, overwrite=True)  # Adicionado overwrite=True para evitar erros de blob existente
+            blob_client.upload_blob(json.dumps(message_data), overwrite=True)  # Alterado para gravar o JSON completo
         except ResourceExistsError:
             print(f'O blob {blob_name} já existe e não foi sobrescrito.')
